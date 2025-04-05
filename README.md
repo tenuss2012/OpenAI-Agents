@@ -27,10 +27,13 @@ source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
 pip install -r requirements.txt
 ```
 
-3. Create a .env file with your OpenAI API key:
+3. Set up your environment:
 ```bash
-echo "OPENAI_API_KEY=your_api_key_here" > .env
+cp .env.example .env
 ```
+Then edit `.env` with your settings:
+- Add your OpenAI API key
+- Adjust other settings as needed (port, debug mode, etc.)
 
 4. Run the web application:
 ```bash
@@ -46,6 +49,17 @@ python src/app.py
     - `base_agent.py`: Base agent wrapper
     - `specialized_agents.py`: Specialized agent definitions
   - `app.py`: Flask web application
+- `.env.example`: Template for environment variables
+- `requirements.txt`: Python dependencies
+
+## Environment Variables
+
+The following environment variables can be configured in your `.env` file:
+
+- `OPENAI_API_KEY`: Your OpenAI API key (required)
+- `FLASK_ENV`: Application environment (development/production)
+- `FLASK_DEBUG`: Enable debug mode (1/0)
+- `PORT`: Port number for the web server
 
 ## Using the Web Interface
 
