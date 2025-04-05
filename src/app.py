@@ -3,7 +3,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 import asyncio
-from agents.research_agent import ResearchAgent
+from agents.specialized_agents import process_request
 
 # Load environment variables
 load_dotenv()
@@ -11,41 +11,19 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# Initialize agents with MCP configuration
-research_agent = ResearchAgent(
-    openai_api_key=os.getenv("OPENAI_API_KEY"),
-    mcp_server_url=os.getenv("MCP_SERVER_URL"),
-    mcp_api_key=os.getenv("MCP_API_KEY")
-)
-
-async def initialize_agents():
-    """Initialize all agents."""
-    await research_agent.initialize()
-
-@app.route("/api/research", methods=["POST"])
-async def research():
+@app.route("/api/query", methods=["POST"])
+async def query():
     """
-    Endpoint for research agent queries
+    Process a query through the agent system
     """
     try:
         data = request.json
         if not data or "query" not in data:
             return jsonify({"error": "Missing query parameter"}), 400
 
-        response = await research_agent.process(data)
-        return jsonify(response)
+        response = await process_request(data["query"])
+        return jsonify({"response": response})
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/api/tools", methods=["GET"])
-async def get_available_tools():
-    """
-    Get list of available tools from MCP server
-    """
-    try:
-        tools = research_agent.available_tools
-        return jsonify({"tools": tools})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -58,7 +36,7 @@ def index():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>OpenAI Agents with MCP Demo</title>
+        <title>OpenAI Agents Demo</title>
         <style>
             body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
             .container { margin-top: 20px; }
@@ -66,45 +44,33 @@ def index():
             textarea { width: 100%; height: 100px; margin-bottom: 10px; }
             button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
             .response { margin-top: 20px; white-space: pre-wrap; }
-            .tools { margin-top: 20px; }
         </style>
     </head>
     <body>
-        <h1>OpenAI Agents with MCP Demo</h1>
-        
+        <h1>OpenAI Agents Demo</h1>
         <div class="container">
-            <div class="tools">
-                <h2>Available Tools</h2>
-                <div id="tools-list"></div>
-            </div>
-            
             <div class="input-container">
-                <h2>Research Agent</h2>
-                <textarea id="research-query" placeholder="Enter your research query..."></textarea>
-                <button onclick="submitResearch()">Submit</button>
+                <h2>Ask a Question</h2>
+                <p>Our system will automatically route your query to the most appropriate agent:</p>
+                <ul>
+                    <li>Research Agent: For information gathering and analysis</li>
+                    <li>Data Analysis Agent: For data processing and statistics</li>
+                    <li>Code Generation Agent: For programming help</li>
+                </ul>
+                <textarea id="query" placeholder="Enter your query..."></textarea>
+                <button onclick="submitQuery()">Submit</button>
             </div>
-            <div id="research-response" class="response"></div>
+            <div id="response" class="response"></div>
         </div>
 
         <script>
-            // Fetch available tools on page load
-            async function fetchTools() {
-                try {
-                    const result = await fetch('/api/tools');
-                    const data = await result.json();
-                    const toolsList = document.getElementById('tools-list');
-                    toolsList.innerHTML = JSON.stringify(data.tools, null, 2);
-                } catch (error) {
-                    console.error('Error fetching tools:', error);
-                }
-            }
-            
-            async function submitResearch() {
-                const query = document.getElementById('research-query').value;
-                const response = document.getElementById('research-response');
+            async function submitQuery() {
+                const query = document.getElementById('query').value;
+                const response = document.getElementById('response');
+                response.textContent = 'Processing...';
                 
                 try {
-                    const result = await fetch('/api/research', {
+                    const result = await fetch('/api/query', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -113,20 +79,15 @@ def index():
                     });
                     
                     const data = await result.json();
-                    response.textContent = JSON.stringify(data, null, 2);
+                    response.textContent = data.response;
                 } catch (error) {
                     response.textContent = `Error: ${error.message}`;
                 }
             }
-            
-            // Fetch tools on page load
-            fetchTools();
         </script>
     </body>
     </html>
     """
 
 if __name__ == "__main__":
-    # Initialize agents before starting the server
-    asyncio.run(initialize_agents())
     app.run(debug=True)
