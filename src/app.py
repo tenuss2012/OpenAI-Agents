@@ -11,8 +11,16 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# Initialize agents
-research_agent = ResearchAgent(api_key=os.getenv("OPENAI_API_KEY"))
+# Initialize agents with MCP configuration
+research_agent = ResearchAgent(
+    openai_api_key=os.getenv("OPENAI_API_KEY"),
+    mcp_server_url=os.getenv("MCP_SERVER_URL"),
+    mcp_api_key=os.getenv("MCP_API_KEY")
+)
+
+async def initialize_agents():
+    """Initialize all agents."""
+    await research_agent.initialize()
 
 @app.route("/api/research", methods=["POST"])
 async def research():
@@ -30,6 +38,17 @@ async def research():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/tools", methods=["GET"])
+async def get_available_tools():
+    """
+    Get list of available tools from MCP server
+    """
+    try:
+        tools = research_agent.available_tools
+        return jsonify({"tools": tools})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/")
 def index():
     """
@@ -39,7 +58,7 @@ def index():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>OpenAI Agents Demo</title>
+        <title>OpenAI Agents with MCP Demo</title>
         <style>
             body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
             .container { margin-top: 20px; }
@@ -47,11 +66,18 @@ def index():
             textarea { width: 100%; height: 100px; margin-bottom: 10px; }
             button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
             .response { margin-top: 20px; white-space: pre-wrap; }
+            .tools { margin-top: 20px; }
         </style>
     </head>
     <body>
-        <h1>OpenAI Agents Demo</h1>
+        <h1>OpenAI Agents with MCP Demo</h1>
+        
         <div class="container">
+            <div class="tools">
+                <h2>Available Tools</h2>
+                <div id="tools-list"></div>
+            </div>
+            
             <div class="input-container">
                 <h2>Research Agent</h2>
                 <textarea id="research-query" placeholder="Enter your research query..."></textarea>
@@ -61,6 +87,18 @@ def index():
         </div>
 
         <script>
+            // Fetch available tools on page load
+            async function fetchTools() {
+                try {
+                    const result = await fetch('/api/tools');
+                    const data = await result.json();
+                    const toolsList = document.getElementById('tools-list');
+                    toolsList.innerHTML = JSON.stringify(data.tools, null, 2);
+                } catch (error) {
+                    console.error('Error fetching tools:', error);
+                }
+            }
+            
             async function submitResearch() {
                 const query = document.getElementById('research-query').value;
                 const response = document.getElementById('research-response');
@@ -80,10 +118,15 @@ def index():
                     response.textContent = `Error: ${error.message}`;
                 }
             }
+            
+            // Fetch tools on page load
+            fetchTools();
         </script>
     </body>
     </html>
     """
 
 if __name__ == "__main__":
+    # Initialize agents before starting the server
+    asyncio.run(initialize_agents())
     app.run(debug=True)
