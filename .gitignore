@@ -1,3 +1,8 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
 # Python
 __pycache__/
 *.py[cod]
@@ -20,12 +25,11 @@ wheels/
 .installed.cfg
 *.egg
 
-# Environments
-.env
-.venv
-env/
+# Virtual Environment
 venv/
+env/
 ENV/
+.venv/
 
 # IDE
 .idea/
@@ -36,3 +40,7 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+logs/
