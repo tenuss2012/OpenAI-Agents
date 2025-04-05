@@ -1,13 +1,16 @@
 # OpenAI-Agents
 
-This repository contains exploration and development of OpenAI Agents with a focus on the new Responses API. The project includes a web application that demonstrates agent capabilities using Memory, Context, and Planning (MCP) principles.
+This repository demonstrates the use of OpenAI's Agents SDK to create a system of specialized agents that can collaborate to handle various tasks. The implementation includes a web interface for interacting with these agents.
 
 ## Features
 
-- Research Agent with web search capabilities
-- Context maintenance across conversations
+- Multiple specialized agents:
+  - Research Agent: For information gathering and analysis
+  - Data Analysis Agent: For data processing and statistics
+  - Code Generation Agent: For programming help
+- Automatic query routing through a Triage Agent
 - Simple web interface for agent interaction
-- Async processing for better performance
+- Async processing support
 
 ## Setup
 
@@ -40,30 +43,31 @@ python src/app.py
 
 - `src/`: Source code directory
   - `agents/`: Agent implementations
-    - `base_agent.py`: Base agent class with common functionality
-    - `research_agent.py`: Research agent implementation
+    - `base_agent.py`: Base agent wrapper
+    - `specialized_agents.py`: Specialized agent definitions
   - `app.py`: Flask web application
-- `tests/`: Test files
-- `examples/`: Example usage and demonstrations
-- `docs/`: Documentation
 
 ## Using the Web Interface
 
 1. Open the web interface at `http://localhost:5000`
-2. Enter your research query in the text area
+2. Enter your query in the text area
 3. Click "Submit" to process your query
-4. View the response and context information
+4. The system will automatically route your query to the most appropriate agent
+5. View the agent's response
+
+## Viewing Traces
+
+To review what happened during your agent runs, navigate to the Trace viewer in the OpenAI Dashboard.
 
 ## Contributing
 
 Feel free to open issues or submit pull requests. Some areas for potential improvement:
 
-- Additional agent types
-- Enhanced web search capabilities
-- Better context management
-- Improved error handling
+- Additional specialized agents
+- Enhanced agent capabilities
+- Improved web interface
+- Better error handling
 - User authentication
-- Advanced web interface features
 
 ## License
 
